@@ -77,8 +77,3 @@ compare_strings:
     mov rax, 60             ; syscall exit
     mov rdi, 1
     syscall
-
-_pas_arguments:
-    mov rax, 60             ; syscall exit
-    mov rdi, 1
-    syscall

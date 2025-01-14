@@ -61,8 +61,3 @@ _end:
     mov rax, 60             ; syscall exit
     mov rdi, 0
     syscall
-
-_pas_arguments:
-    mov rax, 60             ; syscall exit
-    mov rdi, 1
-    syscall
