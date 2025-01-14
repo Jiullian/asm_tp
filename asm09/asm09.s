@@ -1,63 +1,76 @@
 section .bss
-    number   resb 10
-    output   resb 33
+    output  resb 32
 
 section .text
     global _start
 
 _start:
-    mov rdi, [rsp]
-    cmp rdi, 2 
-    je _no_param_provided
+    mov rax, [rsp]
+    cmp rax, 2
+    jne exit_program
 
-    mov rax, 0
-    mov rdi, 0
-    mov rsi, number
-    mov rdx, 10
-    syscall
+    mov rbx, [rsp + 8]
+    mov rsi, [rsp + 16]
 
-    mov rsi, number
-
+convert_param:
     xor rax, rax
-    xor rbx, rbx
+    xor rcx, rcx
 
-read_decimal:
-    mov bl, [rsi]
-    cmp bl, 10
-    je  convert_base
+convert_loop:
+    mov bl, [rsi + rcx]
+    cmp bl, 0
+    je conversion_done
+    cmp bl, '0'
+    jb invalid_input
+    cmp bl, '9'
+    ja invalid_input
     sub bl, '0'
+    movzx rbx, bl
     imul rax, rax, 10
     add  rax, rbx
-    inc  rsi
-    jmp  read_decimal
+    inc  rcx
+    jmp  convert_loop
 
-convert_base:
-    mov rcx, 32
-    lea rdi, [output + 32]
+conversion_done:
+    cmp rax, 0
+    jne hex_conversion
+    mov byte [output], '0'
+    mov rsi, output
+    mov rdx, 1
+    jmp print_hex
 
-loop_hex:
-    xor rdx, rdx
+hex_conversion:
+    lea rdi, [output + 31]
+    mov byte [rdi], 0
+    dec rdi
+    xor rcx, rcx
+
+hex_loop:
     mov rbx, 16
+    mov rdx, 0
     div rbx
-    cmp rdx, 9
-    jle store_digit
-    add rdx, 55
-    jmp write_digit
 
-store_digit:
+    cmp rdx, 9
+    jle hex_digit_num
+    add rdx, 'A' - 10
+    jmp write_hex
+
+hex_digit_num:
     add rdx, '0'
 
-write_digit:
-    dec rdi
+write_hex:
     mov [rdi], dl
-    dec rcx
-    test rax, rax
-    jnz loop_hex
+    dec rdi
+    inc rcx
+    cmp rax, 0
+    jne hex_loop
 
-    mov rax, 1
+    inc rdi
     mov rsi, rdi
-    lea rdx, [output + 32]
-    sub rdx, rdi
+    mov rdx, rcx
+
+print_hex:
+    mov rax, 1
     mov rdi, 1
     syscall
 
@@ -65,7 +78,15 @@ write_digit:
     xor rdi, rdi
     syscall
 
-_no_param_provided:
+invalid_input:
+    jmp display_error
+
+display_error:
     mov rax, 60
-    xor rdi, 1
+    mov rdi, 1
+    syscall
+
+exit_program:
+    mov rax, 60
+    xor rdi, rdi
     syscall
