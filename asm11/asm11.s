@@ -109,6 +109,11 @@ itoa:
     lea rax, [rbx+1]
     ret
 
+_end:
+    mov rax, 60
+    mov rdi, 0
+    syscall
+
 _pas_arguments:
     mov rax, 60
     mov rdi, 1
