@@ -10,7 +10,6 @@ _start:
     cmp rax, 3
     jl _pas_arguments
 
-
     mov rdi, [rsp+16]
     call atoi
     mov r8, rax
