@@ -1,61 +1,71 @@
 section .bss
-    number  resb 10
-    output  resb 33
+    number   resb 10
+    output   resb 33
 
 section .text
     global _start
 
 _start:
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, number
-    mov edx, 10
-    int 0x80
+    mov rdi, [rsp]
+    cmp rdi, 2 
+    je _no_param_provided
 
-    mov ecx, number
-    xor eax, eax
-    xor ebx, ebx
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, number
+    mov rdx, 10
+    syscall
+
+    mov rsi, number
+
+    xor rax, rax
+    xor rbx, rbx
 
 read_decimal:
-    mov bl, [ecx]
+    mov bl, [rsi]
     cmp bl, 10
-    je convert_base
+    je  convert_base
     sub bl, '0'
-    imul eax, 10
-    add eax, ebx
-    inc ecx
-    jmp read_decimal
+    imul rax, rax, 10
+    add  rax, rbx
+    inc  rsi
+    jmp  read_decimal
 
 convert_base:
-    mov ecx, 32
-    lea edi, [output + 32]
+    mov rcx, 32
+    lea rdi, [output + 32]
 
 loop_hex:
-    xor edx, edx
-    mov ebx, 16
-    div ebx
-    cmp edx, 9
+    xor rdx, rdx
+    mov rbx, 16
+    div rbx
+    cmp rdx, 9
     jle store_digit
-    add edx, 55
+    add rdx, 55
     jmp write_digit
 
 store_digit:
-    add edx, '0'
+    add rdx, '0'
 
 write_digit:
-    dec edi
-    mov [edi], dl
-    dec ecx
-    test eax, eax
+    dec rdi
+    mov [rdi], dl
+    dec rcx
+    test rax, rax
     jnz loop_hex
 
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, edi
-    lea edx, [output + 32]
-    sub edx, edi
-    int 0x80
+    mov rax, 1
+    mov rsi, rdi
+    lea rdx, [output + 32]
+    sub rdx, rdi
+    mov rdi, 1
+    syscall
 
-    mov eax, 1
-    xor ebx, ebx
-    int 0x80
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+_no_param_provided:
+    mov rax, 60
+    xor rdi, 1
+    syscall
