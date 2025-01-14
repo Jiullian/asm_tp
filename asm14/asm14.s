@@ -10,40 +10,38 @@ section .bss
 section .text
 
 _start:
-    mov rax, [rsp]          ; Vérifie le nombre d'arguments
-    cmp rax, 2
-    jl _pas_arguments
+    mov rax, [rsp]        ;argc est stocké à l'adresse rsp
 
-    ; Charger le chemin du fichier (le premier argument après le nom de l'exécutable)
-    mov rdi, [rsp+16]
+    cmp rax, 2            ;vérifie si argc == 2 (programme + fichier)
+    jne _error_exit
 
-    ; Ouvrir le fichier en mode écriture/création (syscall openat)
-    xor rax, rax           ; Nettoyer rax
-    mov rax, 257           ; syscall openat
-    mov rdi, -100          ; AT_FDCWD pour le répertoire courant
-    mov rsi, [rsp+16]      ; Adresse du chemin du fichier
-    mov rdx, 577           ; O_CREAT | O_WRONLY
-    mov r10, 644           ; Mode 0644 (rw-r--r--)
+    mov rsi, [rsp + 16]
+
+    ;appel système open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644)
+    mov rax, 2
+    mov rdi, rsi
+    mov rsi, 0x241
+    mov rdx, 0o644
     syscall
 
-    cmp rax, 0             ; Vérifie si l'ouverture a échoué
+    ;vérifie si l'ouverture a réussi
+    test rax, rax
     js _error_exit
 
-    mov rdi, rax           ; Sauvegarde du descripteur de fichier
+    mov rdi, rax
 
-    ; Écrire "Hello Universe!" dans le fichier
-    mov rax, 1             ; syscall write
-    mov rsi, message       ; Adresse du message
-    mov rdx, msg_len       ; Taille du message
+    ;appel système write(fd, message, msg_len)
+    mov rax, 1
+    mov rsi, message
+    mov rdx, msg_len
     syscall
 
-    ; Fermer le fichier
-    mov rax, 3             ; syscall close
+
+    mov rax, 3
     syscall
 
-    ; Quitter avec succès
-    mov rax, 60            ; syscall exit
-    xor rdi, rdi           ; Code de retour 0
+    mov rax, 60
+    xor rdi, rdi
     syscall
 
 _error_exit:
