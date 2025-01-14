@@ -20,8 +20,11 @@ _start:
     mov rdx, 32
     syscall
 
-    sub rax, 1                  ;supprime le retour chariot
-    mov rcx, rax                ;sauvegarde la taille du nombre
+    cmp byte [rsi], 'A'
+    je _lettreA
+
+    sub rax, 1
+    mov rcx, rax
     lea rsi, [number]           ;pointe sur le nombre
 
     xor rdi, rdi
@@ -63,4 +66,9 @@ _premier:
 _notpremier:
     mov rax, 60
     mov rdi, 1
+    syscall
+
+_lettreA:
+    mov rax, 60            ; syscall: exit
+    mov rdi, 2             ; retourne 2
     syscall
